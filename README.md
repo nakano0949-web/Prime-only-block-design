@@ -1,2 +1,180 @@
 # Prime-only-block-design
 Blockdesign
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>射影平面とアフィン平面 (PG(2,p), AG(2,p))</title>
+  <style>
+    body { font-family: sans-serif; }
+    ul { list-style-type: none; padding-left: 0; }
+    li { margin: 2px 0; }
+  </style>
+</head>
+<body>
+  <p>素数 p = <span id="primenum">2</span></p>
+
+  <select id="primenumber">
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="5">5</option>
+    <option value="7">7</option>
+    <option value="11">11</option>
+    <option value="13">13</option>
+    <option value="17">17</option>
+    <option value="19">19</option>
+    <option value="23">23</option>
+        <option value="29">29</option>
+    <option value="31">31</option>
+    <option value="37">37</option>
+    <option value="41">41</option>
+    <option value="43">43</option>
+    <option value="47">47</option>
+    <option value="53">53</option>
+    <option value="59">59</option>
+    <option value="61">61</option>
+       <option value="67">67</option>
+    <option value="71">71</option>
+    <option value="73">73</option>
+    <option value="79">79</option>
+    <option value="83">83</option>
+    <option value="89">89</option>
+    <option value="97">97</option>
+    <option value="101">101</option>
+    <option value="103">103</option>
+    <option value="107">107</option>
+    <option value="109">109</option>
+    <option value="113">113</option>
+    <option value="127">127</option>
+    <option value="131">131</option>
+    <option value="137">137</option>
+    <option value="139">139</option>
+    <option value="149">149</option>
+    <option value="151">151</option>
+  </select>
+
+  <p>
+    <input type="button" onclick="showProjective()" value="射影平面">
+    <input type="button" onclick="showAffine()" value="アフィン平面">
+  </p>
+
+  <div style="display:flex; gap:40px;">
+    <div>
+      <h3>射影平面 PG(2,p)</h3>
+      <ul id="design"></ul>
+    </div>
+    <div>
+      <h3>アフィン平面 AG(2,p)</h3>
+      <ul id="designe"></ul>
+    </div>
+  </div>
+
+  <script>
+    // 現在の素数 p
+    let prime = 2;
+
+    // 射影平面の直線集合 / アフィン平面の直線集合
+    let projectiveLines = [];
+    let affineLines = [];
+
+    // p から PG(2,p) と AG(2,p) を構成する
+    function rebuildPlanes() {
+      const p = prime;
+
+      // 点の総数 q = p^2 + p + 1
+      const q = p ** 2 + p + 1;
+
+      // 0,1,...,q-1 を点として扱う
+      const array = [];
+      for (let i = 0; i < q; i++) array.push(i);
+
+      // array1[k] は「アフィン部分」の k 番目の縦列（p 個ずつのブロック）
+      const array1 = [];
+      for (let i = 1; i <= p; i++) {
+        array1[i - 1] = array.filter(v => p * (i + 1) >= v && p * i < v);
+      }
+
+      const array0 = []; // 射影平面の直線
+      const afine = [];  // アフィン平面の直線
+
+      // 射影平面の「無限遠点 0 を含む直線」とアフィン平面の「水平線」
+      for (let num = 1; num < q; num += p) {
+        const datan = [0];   // 先頭に 0 を含む直線
+        const dataa = [];    // アフィン平面の対応する直線
+
+        for (let h = 0; h < p; h++) {
+          datan[h + 1] = array[num + h];           // 0, num, num+1, ..., num+p-1
+          dataa[h]     = array[num + h] - p - 1;   // アフィン部分に対応
+        }
+
+        array0.push(datan);
+        afine.push(dataa);
+      }
+
+      // 射影平面のアフィン部分の直線 / アフィン平面の全直線
+      for (let i = 0; i < p; i++) {
+        for (let num = 0; num < p; num++) {
+
+          const n = n =>
+            array1[n][(num + i * n) % array1[n].length];
+
+          const a = n =>
+            array1[n][(num + i * n) % array1[n].length] - p - 1;
+
+          const ndata = [array[i + 1]]; // 無限遠点として array[i+1] を付加
+          const adata = [];
+
+          for (let h = 0; h < p; h++) {
+            ndata[h + 1] = n(h);
+            adata[h]     = a(h);
+          }
+
+          array0.push(ndata);
+          afine.push(adata);
+        }
+      }
+      
+      projectiveLines = array0;
+      affineLines = afine;
+      
+    }
+
+    // 射影平面を表示
+    function showProjective() {
+      const ul = document.getElementById('design');
+      ul.innerHTML = '';
+      projectiveLines.forEach(line => {
+        const li = document.createElement('li');
+        li.textContent = line.join(', ');
+        ul.appendChild(li);
+      });
+    }
+
+    // アフィン平面を表示
+    function showAffine() {
+      const ul = document.getElementById('designe');
+      ul.innerHTML = '';
+      affineLines.forEach(line => {
+        const li = document.createElement('li');
+        li.textContent = line.join(', ');
+        ul.appendChild(li);
+      });
+      ul.firstElementChild.remove();
+    }
+
+    // セレクトボックス変更時
+    document.getElementById('primenumber').addEventListener('change', (event) => {
+      prime = Number(event.target.value);
+      document.getElementById('primenum').innerText = String(prime);
+      rebuildPlanes();
+
+      // 表示をクリア
+      document.getElementById('design').innerHTML = '';
+      document.getElementById('designe').innerHTML = '';
+    });
+
+    // 初期状態（p=2）で構成
+    rebuildPlanes();
+  </script>
+</body>
+</html>
