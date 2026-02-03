@@ -1,6 +1,5 @@
 # Prime-only-block-design
-Blockdesign
-<!DOCTYPE html>
+
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
